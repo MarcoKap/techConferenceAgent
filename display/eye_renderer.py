@@ -101,7 +101,10 @@ class EyeRenderer:
         pygame.draw.ellipse(surface, shadow_color, rect, width=max(1, int(height * 0.08)))
 
     def _draw_iris(self, surface, center, cfg, t, height):
-        """Draw iris with radial gradient (dark edges → light center)."""
+        """Draw iris with radial gradient (dark edges → light center).
+        
+        Phase 4: Add subtle color variations and details for high quality.
+        """
         pygame = self._pygame
         cx, cy = center
         
@@ -110,6 +113,10 @@ class EyeRenderer:
         
         # Get base iris color
         iris_color = cfg.eye_color
+        
+        # Phase 4: Pupil dilation based on animation (fake emotion)
+        pupil_dilation = self._get_pupil_dilation(cfg, t)
+        ir = int(ir * pupil_dilation)
         
         # Create radial gradient by drawing concentric circles
         steps = 6
@@ -121,11 +128,18 @@ class EyeRenderer:
             dark = tuple(max(0, int(c * 0.5)) for c in iris_color)
             gradient_color = lerp_color(dark, iris_color, ratio)
             
+            # Phase 4: Subtle color variation based on angle
+            hue_variation = int(5 * math.sin(ratio * math.pi))
+            gradient_color = tuple(max(0, min(255, c + hue_variation)) for c in gradient_color)
+            
             step_radius = int(ir * (i / steps))
             pygame.draw.circle(surface, gradient_color, (int(cx), int(cy)), step_radius)
         
         # Add subtle texture lines (radial stripes)
         self._draw_iris_details(surface, (cx, cy), iris_color, ir)
+        
+        # Phase 4: Draw blood vessels hint (subtle)
+        self._draw_iris_blood_vessels(surface, (cx, cy), iris_color, ir)
 
     def _draw_iris_details(self, surface, center, iris_color, radius):
         """Add subtle radial detail lines to iris."""
@@ -143,6 +157,60 @@ class EyeRenderer:
             x2 = cx + math.cos(angle) * radius * 0.9
             y2 = cy + math.sin(angle) * radius * 0.9
             pygame.draw.line(surface, detail_color, (int(x1), int(y1)), (int(x2), int(y2)), 1)
+
+    def _draw_iris_blood_vessels(self, surface, center, iris_color, radius):
+        """Phase 4: Draw subtle blood vessels in iris for realism."""
+        pygame = self._pygame
+        cx, cy = center
+        
+        if radius < 10:
+            return
+        
+        # Very subtle vessel color (hint of red)
+        vessel_color = tuple(max(0, int(c * 0.8 + 20)) if i == 0 else int(c * 0.8) 
+                           for i, c in enumerate(iris_color))
+        
+        # Draw a few subtle curved vessels
+        num_vessels = 3
+        for v in range(num_vessels):
+            angle_start = (v / num_vessels) * 2 * math.pi
+            
+            # Draw curved vessel path
+            for step in range(int(radius * 0.3), int(radius * 0.8), 2):
+                angle = angle_start + (step / radius) * 0.3
+                x = cx + math.cos(angle) * step
+                y = cy + math.sin(angle) * step
+                pygame.draw.circle(surface, vessel_color, (int(x), int(y)), 1)
+
+    def _get_pupil_dilation(self, cfg, t: float) -> float:
+        """Phase 4: Calculate pupil dilation based on animation state.
+        
+        Returns multiplier for iris/pupil size:
+        - Normal: 1.0
+        - Focused: 0.85 (pupils smaller when concentrated)
+        - Wander: 1.1 (pupils slightly larger when relaxed)
+        - Jitter: 1.2 (pupils larger when nervous/alert)
+        """
+        anim = cfg.pupil_animation
+        
+        if anim == "jitter":
+            # Nervous: pupils dilate
+            return 1.15 + math.sin(t * 5) * 0.05
+        elif anim == "wander":
+            # Relaxed: normal or slightly dilated
+            return 1.0 + math.sin(t * 0.5) * 0.1
+        elif anim == "idle":
+            # Subtle breathing-like dilation
+            return 0.95 + math.sin(t * 0.3) * 0.05
+        elif anim == "still":
+            # Focused: pupils constrict
+            return 0.9
+        else:  # "glow"
+            # Pulsing with glow
+            glow = (math.sin(t * 3) + 1) / 2
+            return 0.95 + glow * 0.1
+        
+        return 1.0
 
     def _draw_pupil(self, surface, center, cfg, t, eye_height):
         """Draw black pupil with 3D offset and optional dilation."""
