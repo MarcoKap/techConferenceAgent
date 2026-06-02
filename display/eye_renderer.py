@@ -45,6 +45,7 @@ class EyeRenderer:
             self._draw_x(surface, cx, cy, cfg.eye_color)
             return
 
+        # Phase 2: Calculate eyelid openness with natural blinking
         openness = self._eyelid_openness(cfg, t)
         if openness < 0.01:  # Eye fully closed
             return
@@ -52,8 +53,11 @@ class EyeRenderer:
         # Draw 3D eyeball with gradient, pupil, and highlights
         self._draw_eyeball(surface, (cx, cy), cfg, t, openness)
         
-        # Draw eyelid shadows for depth
+        # Draw animated eyelid shadows for depth
         self._draw_eyelid_shadows(surface, (cx, cy), cfg, t, openness)
+        
+        # Phase 2: Draw upper and lower eyelids
+        self._draw_eyelids(surface, (cx, cy), cfg, t, openness)
 
         if cfg.eye_shape == "angry":
             self._draw_brow(surface, (cx, cy), openness, mirror)
@@ -230,19 +234,78 @@ class EyeRenderer:
         pygame.draw.ellipse(surface, upper_shadow_color, lower_rect)
 
     def _eyelid_openness(self, cfg, t: float) -> float:
-        """Calculate eye openness (0.0 = closed, 1.0 = fully open)."""
+        """Calculate eye openness (0.0 = closed, 1.0 = fully open).
+        
+        Supports:
+        - Natural blinking cycles
+        - Shape-based modifications (wide, angry, narrow)
+        - Animation-specific blink patterns
+        """
         base = 1.0
+        
+        # Shape modifiers
         if cfg.eye_shape == "wide":
             base = 1.2
         elif cfg.eye_shape == "angry":
             base = 0.85
         
+        # Animation-specific blinking
         if cfg.pupil_animation == "idle":
+            # Natural blink cycle: ~4 seconds, with 150ms blink
             cycle = t % 4.0
-            if cycle > 3.85:  # brief blink near the end of each cycle
-                base *= 0.12
+            if cycle > 3.75:  # Blink in last 0.25 seconds
+                blink_phase = (cycle - 3.75) / 0.25  # 0.0 → 1.0 during blink
+                # Smooth blink curve (down then up)
+                base *= 1.0 - (math.sin(blink_phase * math.pi) ** 2)
         
-        return base
+        return max(0.0, min(1.0, base))
+
+    def _draw_eyelids(self, surface, center, cfg, t, openness):
+        """Draw upper and lower eyelids with depth and animation."""
+        pygame = self._pygame
+        cx, cy = center
+        
+        if openness > 0.95:  # Skip rendering when fully open
+            return
+        
+        # Eyelid height
+        eh = int(self._ry * 2 * openness)
+        if cfg.eye_shape == "narrow":
+            eh = int(eh * 0.4)
+        eh = max(4, eh)
+        
+        # Eyelid color (darker than background but not black)
+        eyelid_color = (50, 50, 60)
+        
+        # Upper eyelid
+        upper_height = int(self._ry * (1.0 - openness) * 0.8)
+        if upper_height > 1:
+            upper_y = cy - eh // 2
+            upper_rect = pygame.Rect(cx - self._rx, upper_y - upper_height, 
+                                     self._rx * 2, upper_height)
+            pygame.draw.ellipse(surface, eyelid_color, upper_rect)
+            
+            # Upper eyelid edge (highlight/shadow)
+            if upper_height > 2:
+                edge_color = (30, 30, 40)
+                pygame.draw.line(surface, edge_color, 
+                                (cx - self._rx, upper_y), 
+                                (cx + self._rx, upper_y), 1)
+        
+        # Lower eyelid
+        lower_height = int(self._ry * (1.0 - openness) * 0.8)
+        if lower_height > 1:
+            lower_y = cy + eh // 2
+            lower_rect = pygame.Rect(cx - self._rx, lower_y, 
+                                     self._rx * 2, lower_height)
+            pygame.draw.ellipse(surface, eyelid_color, lower_rect)
+            
+            # Lower eyelid edge
+            if lower_height > 2:
+                edge_color = (30, 30, 40)
+                pygame.draw.line(surface, edge_color, 
+                                (cx - self._rx, lower_y), 
+                                (cx + self._rx, lower_y), 1)
 
     # -- Animation Helpers ---------------------------------------------------
     def _pupil_offset(self, cfg, t: float):
