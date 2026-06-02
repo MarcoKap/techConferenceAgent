@@ -4,3 +4,15 @@ __pycache__/
 .venv/
 venv/
 *.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+build/
+site/
+.ipynb_checkpoints/
+.python-version
+.env
+.env.*
