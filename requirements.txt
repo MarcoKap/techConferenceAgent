@@ -1,0 +1,5 @@
+pygame>=2.0
+rpi_ws281x>=4.3
+adafruit-circuitpython-pca9685
+adafruit-circuitpython-motor
+RPi.GPIO>=0.7
