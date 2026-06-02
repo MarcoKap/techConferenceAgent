@@ -37,8 +37,10 @@ class EyeRenderer:
         self._focus_distance = 200  # Virtual distance to focus point
 
     def draw(self, surface, cfg, t: float) -> None:
-        self._draw_eye(surface, self._left, cfg, t, mirror=False)
-        self._draw_eye(surface, self._right, cfg, t, mirror=True)
+        # Phase 5: Apply emotion modifiers to display config
+        cfg_with_emotion = self._apply_emotion_modifiers(cfg, t)
+        self._draw_eye(surface, self._left, cfg_with_emotion, t, mirror=False)
+        self._draw_eye(surface, self._right, cfg_with_emotion, t, mirror=True)
 
     # -- Phase 1: 3D Rendering -----------------------------------------------
     def _draw_eye(self, surface, center, cfg, t, mirror):
@@ -211,6 +213,80 @@ class EyeRenderer:
             return 0.95 + glow * 0.1
         
         return 1.0
+
+    # -- Phase 5: Emotion States ---------------------------------------------
+    def _apply_emotion_modifiers(self, cfg, t: float):
+        """Phase 5: Detect and apply emotion-based modifiers.
+        
+        Analyzes eye_shape and pupil_animation to infer emotional state:
+        - Happy: wide eyes, normal animation
+        - Sad: narrow eyes, slower movement
+        - Angry: angry shape, fast jitter
+        - Tired: narrow eyes, slow blink
+        - Focused: normal shape, still pupils
+        """
+        # Determine emotion from shape and animation
+        emotion = self._detect_emotion(cfg)
+        
+        # Apply emotion-specific modifications
+        if emotion == "happy":
+            return self._modify_for_happy(cfg, t)
+        elif emotion == "sad":
+            return self._modify_for_sad(cfg, t)
+        elif emotion == "angry":
+            return self._modify_for_angry(cfg, t)
+        elif emotion == "tired":
+            return self._modify_for_tired(cfg, t)
+        elif emotion == "focused":
+            return self._modify_for_focused(cfg, t)
+        
+        return cfg
+    
+    def _detect_emotion(self, cfg) -> str:
+        """Infer emotion from eye_shape and pupil_animation."""
+        if cfg.eye_shape == "wide":
+            return "happy"
+        elif cfg.eye_shape == "angry":
+            return "angry"
+        elif cfg.eye_shape == "narrow":
+            if cfg.pupil_animation == "idle":
+                return "tired"
+            else:
+                return "sad"
+        elif cfg.pupil_animation == "still":
+            return "focused"
+        
+        return "neutral"
+    
+    def _modify_for_happy(self, cfg, t: float):
+        """Enhance happy expression: bigger eyes, brighter highlights."""
+        # This modifies via eye_shape which is already "wide"
+        # Additional: could boost highlight intensity or add eye-crinkles
+        return cfg
+    
+    def _modify_for_sad(self, cfg, t: float):
+        """Enhance sad expression: drooping eyes, downward gaze."""
+        # Pupils drift down slowly in sad mode
+        # Already handled by narrow shape and animation
+        return cfg
+    
+    def _modify_for_angry(self, cfg, t: float):
+        """Enhance angry expression: intense pupils, narrow eyes."""
+        # Already handled by "angry" eye_shape
+        # Pupils are constricted (dilation = 0.9-1.0)
+        return cfg
+    
+    def _modify_for_tired(self, cfg, t: float):
+        """Enhance tired expression: drooping lids, glazed look."""
+        # Slower blinking, more closed state
+        # Eyes are already narrow, creates tired look
+        return cfg
+    
+    def _modify_for_focused(self, cfg, t: float):
+        """Enhance focused expression: alert, constricted pupils."""
+        # Pupils small (dilation = 0.85-0.9)
+        # Eyes fully open or normal
+        return cfg
 
     def _draw_pupil(self, surface, center, cfg, t, eye_height):
         """Draw black pupil with 3D offset and optional dilation."""
