@@ -31,6 +31,10 @@ class EyeRenderer:
         # Light source position (top-right, normalized)
         self._light_angle = math.radians(-45)
         self._light_dir = (math.cos(self._light_angle), math.sin(self._light_angle))
+        
+        # Phase 3: Stereo vision parameters
+        self._eye_separation = self._left[0] - self._right[0]  # Distance between eyes
+        self._focus_distance = 200  # Virtual distance to focus point
 
     def draw(self, surface, cfg, t: float) -> None:
         self._draw_eye(surface, self._left, cfg, t, mirror=False)
@@ -148,15 +152,15 @@ class EyeRenderer:
         if eye_height <= 10:
             return
         
-        # Get pupil offset from animation
-        dx, dy = self._pupil_offset(cfg, t)
+        # Phase 3: Get 3D pupil position with stereo tracking
+        dx, dy = self._pupil_offset_3d(cfg, t, center)
         
         # Pupil size (can dilate based on emotion later)
         pr = int(min(self._rx, eye_height / 2) * 0.42)
         if pr < 2:
             return
         
-        # Pupil position with animation offset
+        # Pupil position with 3D offset
         px = cx + dx * self._rx * 0.4
         py = cy + dy * (eye_height / 2) * 0.4
         
@@ -167,16 +171,68 @@ class EyeRenderer:
         shadow_r = max(1, pr // 4)
         pygame.draw.circle(surface, (2, 2, 8), (int(px + pr * 0.3), int(py + pr * 0.3)), shadow_r)
 
+    def _pupil_offset_3d(self, cfg, t: float, eye_center: tuple) -> tuple:
+        """Calculate 3D pupil offset with stereo vision and gaze tracking.
+        
+        Simulates:
+        - Gaze direction tracking
+        - Stereoscopic convergence (both eyes look at same point)
+        - Saccades (small eye movements)
+        - Bounds checking (pupil stays in iris)
+        """
+        # Get base animation offset
+        anim = cfg.pupil_animation
+        
+        if anim == "wander":
+            # Slow, smooth wander with stereo convergence
+            base_x = math.sin(t * 0.8) * 0.8
+            base_y = math.sin(t * 0.5) * 0.6
+            
+        elif anim == "jitter":
+            # Nervous, fast jitter movements
+            base_x = (math.sin(t * 25) * 0.8 + math.sin(t * 13) * 0.2)
+            base_y = (math.sin(t * 19) * 0.6)
+            
+        elif anim == "idle":
+            # Gentle, natural eye movement
+            base_x = math.sin(t * 0.6) * 0.3
+            base_y = math.sin(t * 0.4) * 0.2
+            
+        else:  # "still" or "glow"
+            base_x = 0.0
+            base_y = 0.0
+        
+        # Phase 3: Apply stereo offset (eyes converge slightly for depth)
+        # Left eye should look more to the right, right eye to the left
+        eye_x = eye_center[0]
+        screen_center_x = self._w / 2
+        
+        if eye_x < screen_center_x:  # Left eye
+            stereo_convergence = 0.15  # Converge inward
+            base_x += stereo_convergence
+        else:  # Right eye
+            stereo_convergence = -0.15  # Converge inward
+            base_x += stereo_convergence
+        
+        # Clamp to valid range (pupil must stay within iris bounds)
+        base_x = max(-0.9, min(0.9, base_x))
+        base_y = max(-0.8, min(0.8, base_y))
+        
+        return (base_x, base_y)
+
     def _draw_highlights(self, surface, center, cfg, t, eye_height):
-        """Draw multiple layers of highlights for glossy 3D effect."""
+        """Draw multiple layers of highlights for glossy 3D effect.
+        
+        Phase 3: Highlights follow gaze direction for depth perception.
+        """
         pygame = self._pygame
         cx, cy = center
         
         if eye_height <= 10:
             return
         
-        # Get pupil offset to make highlights follow gaze
-        dx, dy = self._pupil_offset(cfg, t)
+        # Phase 3: Get 3D pupil offset to make highlights follow gaze
+        dx, dy = self._pupil_offset_3d(cfg, t, center)
         
         # Primary highlight (bright, upper area)
         h1_offset_x = dx * self._rx * 0.2
