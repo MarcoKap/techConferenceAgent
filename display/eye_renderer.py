@@ -101,6 +101,16 @@ class EyeRenderer:
         # Dark shadow on outer edge (depth effect)
         shadow_color = (120, 120, 140)
         pygame.draw.ellipse(surface, shadow_color, rect, width=max(1, int(height * 0.08)))
+        
+        # Subtle gradient shading: darker on bottom (3D effect)
+        shade_lines = int(height * 0.1)
+        for i in range(shade_lines):
+            ratio = i / max(1, shade_lines)
+            shade_color = tuple(int(245 - ratio * 15) for _ in range(3))
+            y_offset = int(height * (1.0 - ratio))
+            pygame.draw.line(surface, shade_color, 
+                           (int(cx - self._rx), int(cy + y_offset - height // 2)),
+                           (int(cx + self._rx), int(cy + y_offset - height // 2)), 1)
 
     def _draw_iris(self, surface, center, cfg, t, height):
         """Draw iris with radial gradient (dark edges → light center).
@@ -368,6 +378,7 @@ class EyeRenderer:
         """Draw multiple layers of highlights for glossy 3D effect.
         
         Phase 3: Highlights follow gaze direction for depth perception.
+        Phase 5: Multi-layer glow and reflex rings for ultra-realistic look.
         """
         pygame = self._pygame
         cx, cy = center
@@ -385,6 +396,13 @@ class EyeRenderer:
         h1_x = int(cx + h1_offset_x)
         h1_y = int(cy + h1_offset_y)
         
+        # Halo around primary highlight (subtle glow)
+        halo_color = (255, 255, 255, 50)  # Semi-transparent white
+        halo_r = int(h1_r * 1.8)
+        halo_color_rgb = (245, 245, 245)
+        if halo_r > h1_r + 2:
+            pygame.draw.circle(surface, halo_color_rgb, (h1_x, h1_y), halo_r, 1)
+        
         # Draw white highlight
         pygame.draw.circle(surface, (255, 255, 255), (h1_x, h1_y), h1_r)
         
@@ -394,6 +412,13 @@ class EyeRenderer:
         h2_y = int(cy + h1_offset_y * 0.5 + eye_height * 0.10)
         light_glow = (220, 220, 200)
         pygame.draw.circle(surface, light_glow, (h2_x, h2_y), h2_r)
+        
+        # Tertiary micro highlight for extra gloss
+        if h1_r > 3:
+            micro_r = max(1, h1_r // 3)
+            micro_x = int(h1_x - h1_r * 0.3)
+            micro_y = int(h1_y - h1_r * 0.3)
+            pygame.draw.circle(surface, (255, 255, 255), (micro_x, micro_y), micro_r)
         
         # Optional: Glow pulse mode (existing feature)
         if cfg.pupil_animation == "glow":
