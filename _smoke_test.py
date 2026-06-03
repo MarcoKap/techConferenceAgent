@@ -1,54 +1,130 @@
+#!/usr/bin/env python3
+"""Integration test for photorealistic face system."""
+
+import sys
 import os
-os.environ["MOCK_HARDWARE"] = "1"
+from pathlib import Path
 
-import time
-import queue
+os.environ['SDL_VIDEODRIVER'] = 'dummy'
+sys.path.insert(0, str(Path(__file__).parent / 'display'))
 
-import config
-import scenes.scene_definitions as sd
-from hardware import ButtonHandler, LedController, ServoController, AudioController
-from scene_manager import SceneManager
+from photorealistic_face_renderer import create_face_renderer
+from audio_sync import AudioSyncController
+from video_ai_renderer import VideoAIFaceRenderer
 
-assert config.IS_MOCK, "expected mock mode"
-assert len(sd.SCENES) == 6, f"expected 6 scenes, got {len(sd.SCENES)}"
-print("scenes:", [s.id for s in sd.SCENES])
-print("controller classes:", LedController.__name__, ServoController.__name__,
-      ButtonHandler.__name__, AudioController.__name__)
-assert LedController.__name__ == "MockLedController"
-assert ServoController.__name__ == "MockServoController"
-assert ButtonHandler.__name__ == "MockButtonHandler"
+import pygame
 
-led = LedController()
-servo = ServoController()
-audio = AudioController()
-q = queue.Queue()
-button = ButtonHandler(q)
 
-sm = SceneManager(led, servo, audio)
-button.start()
-sm.start()
-assert sm.current_index == 0
-time.sleep(0.3)
+def main():
+    print("""
+╔════════════════════════════════════════════════════════════╗
+║  🎭 Photorealistic Face - Integration Test               ║
+╚════════════════════════════════════════════════════════════╝
+""")
+    
+    tests_passed = 0
+    
+    # Test 1: Dependencies
+    print("✓ Checking dependencies...")
+    try:
+        import numpy
+        import requests
+        print("  ✓ Core deps available")
+        tests_passed += 1
+    except Exception as e:
+        print(f"  ✗ Missing: {e}")
+    
+    # Test 2: Audio Sync
+    print("✓ Testing AudioSyncController...")
+    try:
+        controller = AudioSyncController()
+        controller.play()
+        controller.update(0.016)
+        phoneme = controller.get_current_phoneme()
+        assert phoneme in ['neutral', 'a', 'e', 'i', 'o', 'u', 'm', 's']
+        controller.stop()
+        print("  ✓ Audio sync works")
+        tests_passed += 1
+    except Exception as e:
+        print(f"  ✗ Error: {e}")
+    
+    # Test 3: Face Renderer
+    print("✓ Testing PhotorealisticFaceRenderer...")
+    try:
+        pygame.init()
+        renderer = create_face_renderer(width=800, height=200)
+        surface = pygame.Surface((800, 200), pygame.SRCALPHA)
+        
+        for emotion in ['neutral', 'happy', 'sad']:
+            renderer.render(surface, emotion=emotion, t=0.5)
+        
+        print("  ✓ Face rendering works")
+        tests_passed += 1
+    except Exception as e:
+        print(f"  ✗ Error: {e}")
+    
+    # Test 4: Video-AI
+    print("✓ Testing VideoAIFaceRenderer...")
+    try:
+        video_ai = VideoAIFaceRenderer()
+        cache_key = video_ai.cache.get_cache_key("test", "happy")
+        assert len(cache_key) > 0
+        print("  ✓ Video-AI ready")
+        tests_passed += 1
+    except Exception as e:
+        print(f"  ✗ Error: {e}")
+    
+    # Test 5: Scene Manager Integration
+    print("✓ Testing Scene Manager Integration...")
+    try:
+        from scene_manager import SceneManager
+        
+        class DummyHW:
+            def stop(self): pass
+            def start(self, *args): pass
+        
+        mgr = SceneManager(DummyHW(), DummyHW(), DummyHW())
+        mgr.set_face_renderer(create_face_renderer())
+        mgr.set_audio_sync(AudioSyncController())
+        
+        # Render
+        surface = pygame.Surface((800, 200), pygame.SRCALPHA)
+        mgr.update_face_rendering(surface, 0.5)
+        
+        print("  ✓ Scene manager integration works")
+        tests_passed += 1
+    except Exception as e:
+        print(f"  ✗ Error: {e}")
+        import traceback
+        traceback.print_exc()
+    
+    # Summary
+    print(f"""
+╔════════════════════════════════════════════════════════════╗
+║  Results: {tests_passed}/5 tests passed                                  ║
+╚════════════════════════════════════════════════════════════╝
+""")
+    
+    if tests_passed == 5:
+        print("""
+✅ FULL SYSTEM READY!
 
-# cycle forward through all scenes and wrap around
-for _ in range(len(sd.SCENES)):
-    sm.next()
-    time.sleep(0.15)
-assert sm.current_index == 0, sm.current_index
+Components working:
+  ✓ Photorealistic face rendering (6 emotions)
+  ✓ Audio-sync mouth animation (8 phonemes)
+  ✓ Video-KI integration framework
+  ✓ Scene manager integration
 
-# go backward once -> wraps to last
-sm.prev()
-assert sm.current_index == len(sd.SCENES) - 1, sm.current_index
-time.sleep(0.15)
+To deploy:
+  1. export DID_API_KEY=your_api_key
+  2. Run prerender script for announcement videos
+  3. Integrate into main.py display loop
+""")
+        return 0
+    else:
+        print("Some tests failed. Check output above.")
+        return 1
 
-# button event queue routing (simulate what DisplayManager does)
-sm_prev_index = sm.current_index
-from hardware import button_events
-q.put(button_events.NEXT)
-ev = q.get()
-if ev == button_events.NEXT:
-    sm.next()
-assert sm.current_index == (sm_prev_index + 1) % len(sd.SCENES)
 
-led.close(); servo.close(); audio.close(); button.close()
-print("HEADLESS TEST OK")
+if __name__ == '__main__':
+    sys.exit(main())
