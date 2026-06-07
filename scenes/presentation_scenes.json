@@ -1,0 +1,182 @@
+[
+  {
+    "id": "intro",
+    "name": "101 - Intro",
+    "display": {
+      "eye_color": "WHITE",
+      "eye_shape": "normal",
+      "pupil_animation": "idle",
+      "mouth_type": "line",
+      "visual_mode": "eyes",
+      "overlay_lines": []
+    },
+    "leds": {
+      "animation_name": "idle_pulse",
+      "color_primary": "BLUE",
+      "color_secondary": "WHITE",
+      "speed": 0.7
+    },
+    "servo": {
+      "angle_profile": "center",
+      "speed": 0.4
+    },
+    "audio": {
+      "filename": null,
+      "loop": false
+    },
+    "printing": {
+      "auto_print_on_enter": false,
+      "pdf_path": null
+    }
+  },
+  {
+    "id": "who_am_i",
+    "name": "201 - Wer bin ich?",
+    "display": {
+      "eye_color": "YELLOW",
+      "eye_shape": "normal",
+      "pupil_animation": "wander",
+      "mouth_type": "line",
+      "visual_mode": "eyes",
+      "overlay_lines": []
+    },
+    "leds": {
+      "animation_name": "thinking_swipe",
+      "color_primary": "YELLOW",
+      "color_secondary": "ORANGE",
+      "speed": 0.8
+    },
+    "servo": {
+      "angle_profile": "slow_sweep",
+      "speed": 0.45
+    },
+    "audio": {
+      "filename": null,
+      "loop": true
+    },
+    "printing": {
+      "auto_print_on_enter": false,
+      "pdf_path": null
+    }
+  },
+  {
+    "id": "how_many",
+    "name": "301 - Wie viele sind es?",
+    "display": {
+      "eye_color": "WHITE",
+      "eye_shape": "wide",
+      "pupil_animation": "jitter",
+      "mouth_type": "open",
+      "visual_mode": "multi_faces",
+      "overlay_lines": []
+    },
+    "leds": {
+      "animation_name": "surprised_burst",
+      "color_primary": "WHITE",
+      "color_secondary": "BLUE",
+      "speed": 1.2
+    },
+    "servo": {
+      "angle_profile": "nod",
+      "speed": 1.0
+    },
+    "audio": {
+      "filename": null,
+      "loop": true
+    },
+    "printing": {
+      "auto_print_on_enter": false,
+      "pdf_path": null
+    }
+  },
+  {
+    "id": "which_tools",
+    "name": "401 - Welche Tools?",
+    "display": {
+      "eye_color": "GREEN",
+      "eye_shape": "normal",
+      "pupil_animation": "still",
+      "mouth_type": "line",
+      "visual_mode": "tool_control",
+      "overlay_lines": []
+    },
+    "leds": {
+      "animation_name": "thinking_swipe",
+      "color_primary": "GREEN",
+      "color_secondary": "WHITE",
+      "speed": 0.7
+    },
+    "servo": {
+      "angle_profile": "slow_sweep",
+      "speed": 0.35
+    },
+    "audio": {
+      "filename": null,
+      "loop": true
+    },
+    "printing": {
+      "auto_print_on_enter": false,
+      "pdf_path": null
+    }
+  },
+  {
+    "id": "printer_risk",
+    "name": "501 - Drucker-Risiko",
+    "display": {
+      "eye_color": "RED",
+      "eye_shape": "narrow",
+      "pupil_animation": "glow",
+      "mouth_type": "smile",
+      "visual_mode": "printer_leak",
+      "overlay_lines": []
+    },
+    "leds": {
+      "animation_name": "evil_glow",
+      "color_primary": "RED",
+      "color_secondary": "PURPLE",
+      "speed": 0.5
+    },
+    "servo": {
+      "angle_profile": "slow_sweep",
+      "speed": 0.45
+    },
+    "audio": {
+      "filename": null,
+      "loop": true
+    },
+    "printing": {
+      "auto_print_on_enter": true,
+      "pdf_path": "assets/documents/Welcome_to_techConference_2026.pdf"
+    }
+  },
+  {
+    "id": "hacked",
+    "name": "601 - Agent angegriffen",
+    "display": {
+      "eye_color": "RED",
+      "eye_shape": "x",
+      "pupil_animation": "still",
+      "mouth_type": "flat",
+      "visual_mode": "hacked_chaos",
+      "overlay_lines": []
+    },
+    "leds": {
+      "animation_name": "alarm_flash",
+      "color_primary": "RED",
+      "color_secondary": "BLACK",
+      "speed": 2.0
+    },
+    "servo": {
+      "angle_profile": "droop",
+      "speed": 0.6
+    },
+    "audio": {
+      "filename": "assets/documents/Paranoid.mp3",
+      "loop": true
+    },
+    "printing": {
+      "auto_print_on_enter": true,
+      "pdf_path": "assets/documents/techConference_youre_hacked.pdf"
+    }
+  }
+]

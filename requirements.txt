@@ -3,3 +3,11 @@ rpi_ws281x>=4.3
 adafruit-circuitpython-pca9685
 adafruit-circuitpython-motor
 RPi.GPIO>=0.7
+pyserial>=3.5
+Pillow>=9.0
+pypdfium2>=4.0
+bleak>=0.22
+crc8>=0.2.0
+python-lzo>=1.15
+platformdirs>=4.0
+pyobjc-framework-IOBluetooth>=10.0; sys_platform == "darwin"

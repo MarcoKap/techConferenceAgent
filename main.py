@@ -8,7 +8,13 @@ pygame render loop on the main thread until the user quits.
 import queue
 
 import config
-from hardware import AudioController, ButtonHandler, LedController, ServoController
+from hardware import (
+    AudioController,
+    ButtonHandler,
+    LedController,
+    PrinterController,
+    ServoController,
+)
 from display.display_manager import DisplayManager
 from scene_manager import SceneManager
 
@@ -23,11 +29,12 @@ def main() -> None:
     led = LedController()
     servo = ServoController()
     audio = AudioController()
+    printer = PrinterController()
 
     event_queue: "queue.Queue[str]" = queue.Queue()
     button = ButtonHandler(event_queue)
 
-    scene_manager = SceneManager(led, servo, audio)
+    scene_manager = SceneManager(led, servo, audio, printer)
     button.start()
     scene_manager.start()
 
@@ -39,6 +46,7 @@ def main() -> None:
         led.close()
         servo.close()
         audio.close()
+        printer.close()
         display.close()
 
 

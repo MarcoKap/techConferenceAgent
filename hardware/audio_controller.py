@@ -30,7 +30,13 @@ class AudioController:
         if (not self._initialized or audio_config is None
                 or audio_config.filename is None):
             return
-        path = os.path.join(config.AUDIO_DIR, audio_config.filename)
+        filename = audio_config.filename
+        if os.path.isabs(filename):
+            path = filename
+        elif os.path.sep in filename:
+            path = os.path.join(config.BASE_DIR, filename)
+        else:
+            path = os.path.join(config.AUDIO_DIR, filename)
         if not os.path.exists(path):
             print(f"[audio] file not found, skipping: {path}")
             return

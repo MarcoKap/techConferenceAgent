@@ -1,0 +1,16 @@
+[Unit]
+Description=techConferenceAgent
+After=graphical.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/pi/techConferenceAgent
+Environment=DISPLAY=:0
+Environment=MOCK_HARDWARE=0
+ExecStart=/home/pi/techConferenceAgent/.venv/bin/python /home/pi/techConferenceAgent/main.py
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=graphical.target

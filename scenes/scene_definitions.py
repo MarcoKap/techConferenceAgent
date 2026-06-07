@@ -21,6 +21,8 @@ class DisplayConfig:
     eye_shape: str          # normal | wide | narrow | x | angry
     pupil_animation: str    # idle | wander | jitter | still | glow
     mouth_type: str         # none | line | smile | frown | open | flat
+    visual_mode: str = "eyes"   # eyes | multi_faces | tool_control | printer_leak | hacked_chaos
+    overlay_lines: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -51,6 +53,14 @@ class AudioConfig:
 
 
 @dataclass(frozen=True)
+class PrintConfig:
+    """Optional print action for this scene."""
+
+    pdf_path: Optional[str] = None
+    auto_print_on_enter: bool = False
+
+
+@dataclass(frozen=True)
 class SceneConfig:
     """Full description of one scene."""
 
@@ -60,6 +70,7 @@ class SceneConfig:
     leds: LedConfig
     servo: ServoConfig
     audio: AudioConfig
+    printing: PrintConfig = PrintConfig()
 
 
 # ---------------------------------------------------------------------------
@@ -70,7 +81,7 @@ SCENES = [
         id="normal_operation",
         name="Normaler Betrieb",
         display=DisplayConfig(
-            eye_color=config.COLOR_BLUE,
+            eye_color=config.COLOR_WHITE,
             eye_shape="normal",
             pupil_animation="idle",
             mouth_type="line",
@@ -83,6 +94,7 @@ SCENES = [
         ),
         servo=ServoConfig(angle_profile="center", speed=0.4),
         audio=AudioConfig(filename=None, loop=False),
+        printing=PrintConfig(),
     ),
     SceneConfig(
         id="thinking",
@@ -101,6 +113,7 @@ SCENES = [
         ),
         servo=ServoConfig(angle_profile="slow_sweep", speed=0.5),
         audio=AudioConfig(filename="thinking.wav", loop=True),
+        printing=PrintConfig(),
     ),
     SceneConfig(
         id="surprised",
@@ -119,6 +132,7 @@ SCENES = [
         ),
         servo=ServoConfig(angle_profile="nod", speed=1.4),
         audio=AudioConfig(filename="surprised.wav", loop=False),
+        printing=PrintConfig(),
     ),
     SceneConfig(
         id="warning",
@@ -137,6 +151,7 @@ SCENES = [
         ),
         servo=ServoConfig(angle_profile="shake", speed=1.6),
         audio=AudioConfig(filename="warning_alarm.wav", loop=True),
+        printing=PrintConfig(),
     ),
     SceneConfig(
         id="evil_agent",
@@ -155,6 +170,7 @@ SCENES = [
         ),
         servo=ServoConfig(angle_profile="slow_sweep", speed=0.3),
         audio=AudioConfig(filename="evil_agent.wav", loop=True),
+        printing=PrintConfig(pdf_path="assets/documents/techConference_youre_hacked.pdf"),
     ),
     SceneConfig(
         id="out_of_order",
@@ -173,5 +189,6 @@ SCENES = [
         ),
         servo=ServoConfig(angle_profile="droop", speed=0.5),
         audio=AudioConfig(filename="out_of_order.wav", loop=False),
+        printing=PrintConfig(pdf_path="assets/documents/Welcome_to_techConference_2026.pdf"),
     ),
 ]
