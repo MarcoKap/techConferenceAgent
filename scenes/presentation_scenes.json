@@ -1,5 +1,35 @@
 [
   {
+    "id": "openclaw_intro",
+    "name": "000 - OpenClaw",
+    "display": {
+      "eye_color": "RED",
+      "eye_shape": "normal",
+      "pupil_animation": "still",
+      "mouth_type": "none",
+      "visual_mode": "openclaw_intro",
+      "overlay_lines": []
+    },
+    "leds": {
+      "animation_name": "evil_glow",
+      "color_primary": "RED",
+      "color_secondary": "BLACK",
+      "speed": 0.6
+    },
+    "servo": {
+      "angle_profile": "slow_sweep",
+      "speed": 0.3
+    },
+    "audio": {
+      "filename": null,
+      "loop": false
+    },
+    "printing": {
+      "auto_print_on_enter": false,
+      "pdf_path": null
+    }
+  },
+  {
     "id": "intro",
     "name": "101 - Intro",
     "display": {
@@ -37,7 +67,7 @@
       "eye_shape": "normal",
       "pupil_animation": "wander",
       "mouth_type": "line",
-      "visual_mode": "eyes",
+      "visual_mode": "identity",
       "overlay_lines": []
     },
     "leds": {
