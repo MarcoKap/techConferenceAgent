@@ -12,8 +12,10 @@ import os
 import shlex
 import shutil
 import subprocess
+import sys
 import tempfile
 import threading
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import Iterable
@@ -69,7 +71,19 @@ class PrinterController:
 
         if len(cmd_parts) == 1:
             candidate = cmd_parts[0]
-            if os.path.sep not in candidate and shutil.which(candidate) is None:
+            candidate_path = Path(candidate)
+            if not candidate_path.is_absolute():
+                repo_relative = Path(config.BASE_DIR) / candidate
+                if repo_relative.exists():
+                    candidate_path = repo_relative
+
+            if candidate_path.suffix == ".py" and candidate_path.exists():
+                cmd_parts = [sys.executable, str(candidate_path)]
+            elif os.path.sep in candidate:
+                if not candidate_path.exists():
+                    return False
+                cmd_parts = [str(candidate_path)]
+            elif shutil.which(candidate) is None:
                 return False
         self._timiniprint_cmd = cmd_parts
         print(f"[printer] ready via timiniprint cmd={' '.join(self._timiniprint_cmd)}")
@@ -145,7 +159,7 @@ class PrinterController:
             f"Servo: {scene.servo.angle_profile}",
             f"Audio: {scene.audio.filename or 'none'}",
         ]
-        self._print_text("Conference Robot Scene", lines)
+        self._submit_print_job(self._print_text, "Conference Robot Scene", lines)
 
     def print_test_ticket(self, scene, index: int, total: int) -> None:
         if not self._enabled:
@@ -158,7 +172,7 @@ class PrinterController:
             f"Position: {index}/{total}",
             f"Host mode: {'mock' if config.IS_MOCK else 'real-hardware'}",
         ]
-        self._print_text("Conference Robot Printer Test", lines)
+        self._submit_print_job(self._print_text, "Conference Robot Printer Test", lines)
 
     def print_pdf(self, pdf_path: str | None) -> None:
         if not self._enabled:
@@ -175,15 +189,36 @@ class PrinterController:
             print(f"[printer] pdf not found: {full_path}")
             return
 
-        if self._backend == "timiniprint":
-            self._print_pdf_via_timiniprint(full_path)
-            return
+        self._submit_print_job(self._print_pdf, full_path)
 
-        if self._backend == "cups":
-            self._print_file_via_cups(full_path)
-            return
+    def _print_pdf(self, full_path: Path) -> None:
+        with self._lock:
+            try:
+                if self._backend == "timiniprint":
+                    self._print_pdf_via_timiniprint(full_path)
+                    return
 
-        print(f"[printer] backend '{self._backend}' does not support PDF scene print")
+                if self._backend == "cups":
+                    self._print_file_via_cups(full_path)
+                    return
+
+                print(f"[printer] backend '{self._backend}' does not support PDF scene print")
+            except Exception as exc:
+                print(f"[printer] pdf print failed: {exc}")
+
+    def _submit_print_job(self, fn, *args) -> None:
+        thread = threading.Thread(
+            target=self._run_print_job,
+            args=(fn, *args),
+            daemon=True,
+        )
+        thread.start()
+
+    def _run_print_job(self, fn, *args) -> None:
+        try:
+            fn(*args)
+        except Exception as exc:
+            print(f"[printer] print job failed: {exc}")
 
     def _print_text(self, title: str, lines: Iterable[str]) -> None:
         with self._lock:
@@ -298,15 +333,7 @@ class PrinterController:
         if config.PRINTER_TIMINIPRINT_CONFIG:
             cmd.extend(["--printer-config", config.PRINTER_TIMINIPRINT_CONFIG])
         cmd.extend(["--text", text])
-
-        result = subprocess.run(cmd, capture_output=True, text=True, check=False)
-        if result.returncode != 0:
-            detail = (result.stderr or result.stdout).strip()
-            print(f"[printer] timiniprint failed: {detail}")
-            return
-
-        output = (result.stdout or "").strip()
-        print(f"[printer] timiniprint queued: {output or 'ok'}")
+        self._run_timiniprint_command(cmd, "timiniprint")
 
     def _print_pdf_via_timiniprint(self, path: Path) -> None:
         if self._timiniprint_cmd is None:
@@ -328,11 +355,33 @@ class PrinterController:
             str(path),
         ])
 
-        result = subprocess.run(cmd, capture_output=True, text=True, check=False)
-        if result.returncode != 0:
+        self._run_timiniprint_command(cmd, "timiniprint pdf")
+
+    def _run_timiniprint_command(self, cmd: list[str], label: str) -> None:
+        retries = 2
+        for attempt in range(1, retries + 1):
+            result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+            if result.returncode == 0:
+                output = (result.stdout or "").strip()
+                print(f"[printer] {label} queued: {output or 'ok'}")
+                return
+
             detail = (result.stderr or result.stdout).strip()
-            print(f"[printer] timiniprint pdf failed: {detail}")
+            if attempt < retries and self._is_transient_bt_error(detail):
+                print(
+                    f"[printer] {label} transient bluetooth issue, retrying "
+                    f"({attempt}/{retries - 1})"
+                )
+                time.sleep(1.0)
+                continue
+            print(f"[printer] {label} failed: {detail}")
             return
 
-        output = (result.stdout or "").strip()
-        print(f"[printer] timiniprint pdf queued: {output or 'ok'}")
+    @staticmethod
+    def _is_transient_bt_error(detail: str) -> bool:
+        text = detail.lower()
+        return (
+            "bluetooth connection failed" in text
+            or "service discovery" in text
+            or "retrying over ble" in text
+        )

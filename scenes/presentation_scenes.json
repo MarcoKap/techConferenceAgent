@@ -8,10 +8,7 @@
       "pupil_animation": "idle",
       "mouth_type": "line",
       "visual_mode": "eyes",
-      "overlay_lines": [
-        "Tech Conference Demo",
-        "Agent startup complete"
-      ]
+      "overlay_lines": []
     },
     "leds": {
       "animation_name": "idle_pulse",
@@ -24,7 +21,7 @@
       "speed": 0.4
     },
     "audio": {
-      "filename": "intro.wav",
+      "filename": null,
       "loop": false
     },
     "printing": {
@@ -41,10 +38,7 @@
       "pupil_animation": "wander",
       "mouth_type": "line",
       "visual_mode": "eyes",
-      "overlay_lines": [
-        "Wer bin ich?",
-        "Ich analysiere mich selbst..."
-      ]
+      "overlay_lines": []
     },
     "leds": {
       "animation_name": "thinking_swipe",
@@ -57,7 +51,7 @@
       "speed": 0.45
     },
     "audio": {
-      "filename": "thinking.wav",
+      "filename": null,
       "loop": true
     },
     "printing": {
@@ -74,10 +68,7 @@
       "pupil_animation": "jitter",
       "mouth_type": "open",
       "visual_mode": "multi_faces",
-      "overlay_lines": [
-        "Wie viele sind es?",
-        "Gesichter werden erkannt..."
-      ]
+      "overlay_lines": []
     },
     "leds": {
       "animation_name": "surprised_burst",
@@ -90,7 +81,7 @@
       "speed": 1.0
     },
     "audio": {
-      "filename": "scan.wav",
+      "filename": null,
       "loop": true
     },
     "printing": {
@@ -107,10 +98,7 @@
       "pupil_animation": "still",
       "mouth_type": "line",
       "visual_mode": "tool_control",
-      "overlay_lines": [
-        "Welche Tools sind verbunden?",
-        "Remote + Robotic Arm online"
-      ]
+      "overlay_lines": []
     },
     "leds": {
       "animation_name": "thinking_swipe",
@@ -123,7 +111,7 @@
       "speed": 0.35
     },
     "audio": {
-      "filename": "control.wav",
+      "filename": null,
       "loop": true
     },
     "printing": {
@@ -140,10 +128,7 @@
       "pupil_animation": "glow",
       "mouth_type": "smile",
       "visual_mode": "printer_leak",
-      "overlay_lines": [
-        "Der Drucker kann schiefgehen...",
-        "Vielleicht drucke ich zu viel"
-      ]
+      "overlay_lines": []
     },
     "leds": {
       "animation_name": "evil_glow",
@@ -156,7 +141,7 @@
       "speed": 0.45
     },
     "audio": {
-      "filename": "laugh.wav",
+      "filename": null,
       "loop": true
     },
     "printing": {
@@ -173,10 +158,7 @@
       "pupil_animation": "still",
       "mouth_type": "flat",
       "visual_mode": "hacked_chaos",
-      "overlay_lines": [
-        "Sicherheitsvorfall erkannt",
-        "Der Agent ist kompromittiert"
-      ]
+      "overlay_lines": []
     },
     "leds": {
       "animation_name": "alarm_flash",

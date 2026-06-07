@@ -7,6 +7,7 @@ Raspberry Pi (real hardware).
 
 import os
 import platform
+import sys
 
 
 def _env_flag(name: str, default: bool = False) -> bool:
@@ -86,14 +87,14 @@ COLOR_PURPLE = (120, 20, 160)
 COLOR_GREY = (120, 120, 120)
 
 # ---------------------------------------------------------------------------
-# Printer (CUPS via lp command)
+# Printer (TiMini-Print preferred; CUPS still available via env override)
 # ---------------------------------------------------------------------------
 # Enabled by default so printer tests work on macOS out of the box.
 PRINTER_ENABLED = _env_flag("PRINTER_ENABLED", default=True)
 # Optional CUPS destination name. If unset, the system default printer is used.
 PRINTER_NAME = os.getenv("PRINTER_NAME")
-# Backend: auto | cups | serial | raw
-PRINTER_BACKEND = os.getenv("PRINTER_BACKEND", "auto").strip().lower()
+# Backend: auto | cups | serial | raw | timiniprint
+PRINTER_BACKEND = os.getenv("PRINTER_BACKEND", "timiniprint").strip().lower()
 # Serial settings for ESC/POS thermal printers.
 PRINTER_SERIAL_PORT = os.getenv("PRINTER_SERIAL_PORT")
 PRINTER_SERIAL_BAUDRATE = int(os.getenv("PRINTER_SERIAL_BAUDRATE", "9600"))
@@ -102,8 +103,14 @@ PRINTER_RAW_DEVICE = os.getenv("PRINTER_RAW_DEVICE")
 # Try to send full cut command after print (not all thermal printers support it).
 PRINTER_ESC_POS_CUT = _env_flag("PRINTER_ESC_POS_CUT", default=False)
 # TiMini-Print backend settings (for proprietary mini printer protocols).
-PRINTER_TIMINIPRINT_CMD = os.getenv("PRINTER_TIMINIPRINT_CMD", "timiniprint_command_line.py")
-PRINTER_TIMINIPRINT_BLUETOOTH = os.getenv("PRINTER_TIMINIPRINT_BLUETOOTH")
+PRINTER_TIMINIPRINT_CMD = os.getenv(
+    "PRINTER_TIMINIPRINT_CMD",
+    f"{sys.executable} {os.path.join(BASE_DIR, 'TiMini-Print', 'timiniprint_command_line.py')}",
+)
+PRINTER_TIMINIPRINT_BLUETOOTH = os.getenv(
+    "PRINTER_TIMINIPRINT_BLUETOOTH",
+    "00:00:00:01:EC:8A",
+)
 PRINTER_TIMINIPRINT_SERIAL = os.getenv("PRINTER_TIMINIPRINT_SERIAL")
 PRINTER_TIMINIPRINT_CONFIG = os.getenv("PRINTER_TIMINIPRINT_CONFIG")
 PRINTER_TIMINIPRINT_DARKNESS = int(os.getenv("PRINTER_TIMINIPRINT_DARKNESS", "5"))
