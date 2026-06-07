@@ -18,7 +18,7 @@ else:
     else:
         from hardware.noop_button_handler import NoopButtonHandler as ButtonHandler
     from hardware.noop_led_controller import NoopLedController as LedController
-    from hardware.servo_controller import ServoController
+    from hardware.noop_servo_controller import NoopServoController as ServoController
     from hardware.audio_controller import AudioController
 
 __all__ = [
