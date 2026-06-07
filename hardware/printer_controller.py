@@ -210,7 +210,7 @@ class PrinterController:
         thread = threading.Thread(
             target=self._run_print_job,
             args=(fn, *args),
-            daemon=True,
+            daemon=False,
         )
         thread.start()
 
