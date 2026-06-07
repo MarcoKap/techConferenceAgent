@@ -68,6 +68,27 @@ Auf Windows laufen alle Augen-Animationen und Audio vollständig. GPIO, LEDs und
 
 ## Starten
 
+### Raspberry Pi: saubere Installation aus dem Git-Repository
+
+```bash
+cd ~
+git clone <dein-github-repo-url> techConferenceAgent
+cd techConferenceAgent
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+Wenn das Repo schon auf dem Pi liegt, reicht statt `git clone` ein `git pull`.
+
+Danach den Teststart einmal manuell ausführen:
+
+```bash
+sudo .venv/bin/python main.py
+```
+
+Wenn das läuft, kannst du Autostart oder Desktop-Launcher einrichten.
+
 ### Windows (Entwicklung)
 
 ```bash
@@ -101,6 +122,39 @@ Bei Start über SSH:
 export DISPLAY=:0
 sudo python main.py
 ```
+
+### Autostart per systemd
+
+Die Vorlage liegt in [deploy/techConferenceAgent.service](deploy/techConferenceAgent.service).
+
+```bash
+sudo cp deploy/techConferenceAgent.service /etc/systemd/system/techConferenceAgent.service
+sudo systemctl daemon-reload
+sudo systemctl enable techConferenceAgent.service
+sudo systemctl start techConferenceAgent.service
+```
+
+Logs ansehen:
+
+```bash
+journalctl -u techConferenceAgent.service -f
+```
+
+### Desktop-Symbol
+
+Die Vorlage liegt in [deploy/techConferenceAgent.desktop](deploy/techConferenceAgent.desktop).
+Der Launcher nutzt [deploy/start_on_pi.sh](deploy/start_on_pi.sh) und ist für den Raspberry Pi gedacht.
+
+Typischer Ablauf:
+
+```bash
+mkdir -p ~/.local/share/applications
+cp deploy/techConferenceAgent.desktop ~/.local/share/applications/
+chmod +x deploy/start_on_pi.sh
+chmod +x ~/.local/share/applications/techConferenceAgent.desktop
+```
+
+Danach kannst du das Symbol meist aus dem Anwendungsmenü starten oder auf den Desktop kopieren.
 
 ---
 

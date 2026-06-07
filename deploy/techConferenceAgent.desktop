@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=techConferenceAgent
+Comment=Startet den Konferenz-Roboter
+Exec=/home/pi/techConferenceAgent/deploy/start_on_pi.sh
+Terminal=false
+Categories=Utility;
+Icon=utilities-terminal
