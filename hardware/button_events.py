@@ -2,3 +2,5 @@
 
 NEXT = "next"
 PREV = "prev"
+PRINT_TEST = "print_test"
+PRINT_SCENE = "print_scene"
